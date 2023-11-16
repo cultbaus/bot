@@ -20,4 +20,7 @@ clean:
 image:
 	docker build -t cultbaus/$(BIN):$(VERSION) -f build/package/$(BIN)/Dockerfile .
 
+publish: image
+	docker push cultbaus/$(BIN):$(VERSION)
+
 .PHONY: build clean image
