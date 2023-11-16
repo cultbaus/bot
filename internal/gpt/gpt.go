@@ -122,7 +122,7 @@ func (g *Gpt) cleanup() {
 	defer ticker.Stop()
 
 	for range ticker.C {
-		n := len(g.history)
+		n := len(g.history) / 2
 		g.history = g.history[n:]
 	}
 }
