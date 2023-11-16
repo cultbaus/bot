@@ -18,6 +18,6 @@ clean:
 	@rm -rf '$(BINDIR)'
 
 image:
-	docker build -t cultbaus/$(BIN):$(VERSION) build/package/$(BIN)
+	docker build -t cultbaus/$(BIN):$(VERSION) -f build/package/$(BIN)/Dockerfile .
 
 .PHONY: build clean image
