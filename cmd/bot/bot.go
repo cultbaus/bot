@@ -1,76 +1,46 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
-	"regexp"
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
+
+	"github.com/cultbaus/bot/internal/config"
+	"github.com/cultbaus/bot/internal/gpt"
+	"github.com/cultbaus/bot/internal/tweet"
 )
 
-const Phasedruid = "359008637139812373"
-
 var (
-	session    *discordgo.Session
-	tweetRegex *regexp.Regexp
+	chat    *gpt.Gpt
+	session *discordgo.Session
 )
 
 func init() {
 	var err error
-
-	session, err = discordgo.New("Bot " + getToken())
+	session, err = discordgo.New("Bot " + config.GetToken())
 	if err != nil {
 		log.Fatal(err)
 	}
+}
 
-	tweetRegex = regexp.MustCompile(`(https://(?:twitter\.com|x\.com)|(http://(?:twitter\.com|x\.com))/\S+)`)
+func init() {
+	chat = gpt.New("https://api.openai.com/v1/chat/completions")
 }
 
 func main() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
 
+	session.AddHandler(chat.Handler)
+	session.AddHandler(tweet.Handler)
+
 	if err := session.Open(); err != nil {
 		panic(err)
 	}
-
-	session.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
-		if m.Author.ID == s.State.User.ID {
-			return
-		}
-		if !tweetRegex.MatchString(m.Content) {
-			return
-		}
-
-		msg := m.Author.Mention()
-
-		if m.Author.ID == Phasedruid {
-			msg += ", I think you should stay off twitter for a while"
-		} else {
-			msg += ", embeds: " + tweetRegex.ReplaceAllString(m.Content, "https://vxtwitter.com")
-		}
-
-		if _, err := s.ChannelMessageSendReply(m.ChannelID, msg, m.Reference()); err != nil {
-			log.Println(err)
-		}
-		if err := s.ChannelMessageDelete(m.ChannelID, m.ID); err != nil {
-			log.Println(err)
-		}
-	})
+	defer session.Close()
 
 	<-stop
-}
-
-func getToken() string {
-	return readEnv("TOKEN")
-}
-
-func readEnv(ev string) string {
-	if value := os.Getenv(ev); value != "" {
-		return value
-	}
-	panic(fmt.Sprintf("config: %s is not set", ev))
 }
