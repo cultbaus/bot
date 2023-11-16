@@ -20,4 +20,4 @@ clean:
 image:
 	docker build -t cultbaus/$(BIN):$(VERSION) build/package/$(BIN)
 
-.PHONY: build test clean
+.PHONY: build clean image
