@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"time"
+	"strings"
 
 	"github.com/bwmarrin/discordgo"
 
@@ -57,6 +58,10 @@ func (g *Gpt) Handler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 	for _, mention := range m.Mentions {
 		if mention.ID == s.State.User.ID {
+			refMsg := m.ReferencedMessage
+			if refMsg != nil && refMsg.Author.ID == s.State.User.ID && strings.Contains(refMsg.Content, "vxtwitter") {
+				continue
+			}
 			response, err := g.send(m.Content)
 			if err != nil {
 				log.Println(err)
