@@ -10,7 +10,6 @@ import (
 
 	"github.com/cultbaus/bot/internal/config"
 	"github.com/cultbaus/bot/internal/gpt"
-	"github.com/cultbaus/bot/internal/tweet"
 )
 
 var (
@@ -35,7 +34,6 @@ func main() {
 	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
 
 	session.AddHandler(chat.Handler)
-	session.AddHandler(tweet.Handler)
 
 	if err := session.Open(); err != nil {
 		panic(err)
